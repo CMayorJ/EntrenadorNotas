@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrenador Musical + Guitarra</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    margin: 0;
+  }
+  .contenedor {
+    background: white;
+    max-width: 760px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 18px;
+    box-sizing: border-box;
+  }
+  .banner-record {
+    background-color: #FFF8E1;
+    border: 1px solid #FFE082;
+    color: #E65100;
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .btn-reset {
+    background: #FFE082;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #BF360C;
+    font-weight: bold;
+  }
+  .panel-config {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .controles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 12px;
+  }
+  button.btn-accion {
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+  }
+  #btnIniciar { background-color: #4CAF50; }
+  #btnIniciar:disabled { background-color: #A5D6A7; cursor: not-allowed; }
+  #btnParar { background-color: #f44336; }
+  #btnParar:disabled { background-color: #EF9A9A; cursor: not-allowed; }
+  .reloj {
+    font-size: 17px;
+    font-weight: bold;
+    color: #1976D2;
+    min-width: 110px;
+    text-align: center;
+  }
+  .scroll-canvas {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    margin-bottom: 10px;
+  }
+  canvas {
+    display: block;
+  }
+  .feedback {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    min-height: 24px;
+    margin-bottom: 10px;
+  }
+  .botonera-notas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .btn-nota {
+    width: 72px;
+    height: 46px;
+    font-size: 15px;
+    font-weight: bold;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-nota:hover:not(:disabled) {
+    background-color: #e3f2fd;
+    border-color: #1976D2;
+  }
+  .btn-nota:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .estadisticas {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #444;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+  <div class="banner-record">
+    <span id="lblRecord">🏆 Mejor histórico: Sin registros aún</span>
+    <button class="btn-reset" onclick="reiniciarRecord()">🗑️ Reiniciar récord</button>
+  </div>
+
+  <div class="panel-config">
+    <label>
+      <input type="checkbox" id="chkTiempo" onchange="toggleTiempo()"> Tiempo (s):
+      <input type="number" id="numSegundos" value="60" min="10" max="600" step="10" style="width: 55px;" disabled onchange="toggleTiempo()">
+    </label>
+    <label><input type="checkbox" id="chkNombres" checked onchange="redibujar()"> Nombre arriba</label>
+    <label><input type="checkbox" id="chkGuitarra" checked onchange="redibujar()"> Guitarra abajo</label>
+    <select id="selPosicion" onchange="redibujar()">
+      <option value="pos1">Posición I (Trastes 0-3)</option>
+      <option value="pos5">Posición V (Trastes 4-8)</option>
+    </select>
+  </div>
+
+  <div class="controles">
+    <button id="btnIniciar" class="btn-accion" onclick="iniciarJuego()">▶ Iniciar</button>
+    <button id="btnParar" class="btn-accion" onclick="pararJuego(false)" disabled>⏹ Parar</button>
+    <div id="lblReloj" class="reloj">Tiempo: ∞</div>
+  </div>
+
+  <div class="scroll-canvas" id="scrollContainer">
+    <canvas id="canvasPentagrama" width="720" height="245"></canvas>
+  </div>
+
+  <div id="lblFeedback" class="feedback">Configura tus opciones y pulsa 'Iniciar'</div>
+  <div class="botonera-notas" id="panelBotones"></div>
+  <div id="lblStats" class="estadisticas">Aciertos: 0 | Intentos: 0 | Nota: -</div>
+</div>
+
+<script>
+  const notasDisponibles = [
+    { nombre: "Do",  y: 175, linea: true,  frec: 261.63, pos1: "5ª-T3", pos5: "6ª-T8" },
+    { nombre: "Re",  y: 165, linea: false, frec: 293.66, pos1: "4ª-0",  pos5: "5ª-T5" },
+    { nombre: "Mi",  y: 155, linea: false, frec: 329.63, pos1: "4ª-T2", pos5: "5ª-T7" },
+    { nombre: "Fa",  y: 145, linea: false, frec: 349.23, pos1: "4ª-T3", pos5: "5ª-T8" },
+    { nombre: "Sol", y: 135, linea: false, frec: 392.00, pos1: "3ª-0",  pos5: "4ª-T5" },
+    { nombre: "La",  y: 125, linea: false, frec: 440.00, pos1: "3ª-T2", pos5: "4ª-T7" },
+    { nombre: "Si",  y: 115, linea: false, frec: 493.88, pos1: "2ª-0",  pos5: "3ª-T4" },
+    { nombre: "Do",  y: 105, linea: false, frec: 523.25, pos1: "2ª-T1", pos5: "3ª-T5" },
+    { nombre: "Re",  y: 95,  linea: false, frec: 587.33, pos1: "2ª-T3", pos5: "3ª-T7" },
+    { nombre: "Mi",  y: 85,  linea: false, frec: 659.25, pos1: "1ª-0",  pos5: "2ª-T5" },
+    { nombre: "Fa",  y: 75,  linea: false, frec: 698.46, pos1: "1ª-T1", pos5: "2ª-T6" },
+    { nombre: "Sol", y: 65,  linea: false, frec: 783.99, pos1: "1ª-T3", pos5: "2ª-T8" }
+  ];
+
+  const frecuenciasBotones = {
+    "Do": 261.63, "Re": 293.66, "Mi": 329.63,
+    "Fa": 349.23, "Sol": 392.00, "La": 440.00, "Si": 493.88
+  };
+
+  let jugando = false;
+  let aciertos = 0;
+  let intentos = 0;
+  let notaActual = null;
+  let historial = [];
+  let tiempoRestante = 0;
+  let timerInterval = null;
+  let audioCtx = null;
+
+  const panelBotones = document.getElementById("panelBotones");
+  ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"].forEach(nombre => {
+    const btn = document.createElement("button");
+    btn.className = "btn-nota";
+    btn.textContent = nombre;
+    btn.disabled = true;
+    btn.onclick = () => verificarRespuesta(nombre);
+    panelBotones.appendChild(btn);
+  });
+
+  function reproducirSonido(frecuencia, duracion) {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ahora = audioCtx.currentTime;
+    const armonicos = new Array(1, 2, 3);
+    const pesos = [0.4, 0.2, 0.08];
+
+
+    armonicos.forEach((armonico, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(frecuencia * armonico, ahora);
+
+      gain.gain.setValueAtTime(pesos[idx], ahora);
+      gain.gain.exponentialRampToValueAtTime(0.001, ahora + duracion);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(ahora);
+      osc.stop(ahora + duracion);
+    });
+  }
+
+  function cargarRecord() {
+    const data = localStorage.getItem("record_notas_web");
+    return data ? JSON.parse(data) : { nota: 0, porcentaje: 0, aciertos: 0, intentos: 0 };
+  }
+
+  function actualizarBannerRecord() {
+    const rec = cargarRecord();
+    const lbl = document.getElementById("lblRecord");
+    if (rec.intentos === 0) {
+      lbl.textContent = "🏆 Mejor histórico: Sin registros aún";
+    } else {
+      lbl.textContent = `🏆 Mejor histórico: Nota ${rec.nota.toFixed(1)}/10 (${rec.porcentaje.toFixed(0)}% - ${rec.aciertos}/${rec.intentos} aciertos)`;
+    }
+  }
+
+  function reiniciarRecord() {
+    if (confirm("¿Seguro que quieres borrar el mejor resultado histórico?")) {
+      localStorage.removeItem("record_notas_web");
+      actualizarBannerRecord();
+    }
+  }
+
+  function toggleTiempo() {
+    const usar = document.getElementById("chkTiempo").checked;
+    const inputSeg = document.getElementById("numSegundos");
+    const lblReloj = document.getElementById("lblReloj");
+    inputSeg.disabled = !usar || jugando;
+    lblReloj.textContent = usar ? `Tiempo: ${inputSeg.value}s` : "Tiempo: ∞";
+  }
+
+  function redibujar() {
+    const canvas = document.getElementById("canvasPentagrama");
+    const ctx = canvas.getContext("2d");
+    const espacio = 72;
+    const margenIzq = 120;
+
+    canvas.width = Math.max(720, margenIzq + (historial.length + 2) * espacio);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    for (let y = 75; y <= 155; y += 20) {
+      ctx.beginPath();
+      ctx.moveTo(20, y);
+      ctx.lineTo(canvas.width - 20, y);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = "black";
+    ctx.font = "75px Arial";
+    ctx.fillText("𝄞", 35, 142);
+
+    const mostrarNombres = document.getElementById("chkNombres").checked;
+    const mostrarGuitarra = document.getElementById("chkGuitarra").checked;
+    const posKey = document.getElementById("selPosicion").value;
+
+    historial.forEach((item, idx) => {
+      const x = margenIzq + idx * espacio;
+      const y = item.y;
+      ctx.strokeStyle = item.color;
+      ctx.fillStyle = item.color;
+      ctx.lineWidth = 2;
+
+      if (item.linea) {
+        ctx.beginPath();
+        ctx.moveTo(x - 20, y);
+        ctx.lineTo(x + 20, y);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.ellipse(x, y, 11, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      if (y >= 115) {
+        ctx.moveTo(x + 11, y);
+        ctx.lineTo(x + 11, y - 50);
+      } else {
+        ctx.moveTo(x - 11, y);
+        ctx.lineTo(x - 11, y + 50);
+      }
+      ctx.stroke();
+
+      if (item.respondida && mostrarNombres) {
+        ctx.font = "bold 13px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(item.nombre, x, 30);
+      }
+
+      if (item.respondida && mostrarGuitarra) {
+        ctx.fillStyle = "#1565C0";
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(item[posKey], x, 222);
+      }
+    });
+
+    const scrollContainer = document.getElementById("scrollContainer");
+    scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+  }
+
+  function iniciarJuego() {
+    jugando = true;
+    aciertos = 0;
+    intentos = 0;
+    historial = [];
+
+    document.getElementById("btnIniciar").disabled = true;
+    document.getElementById("btnParar").disabled = false;
+    document.getElementById("numSegundos").disabled = true;
+    document.querySelectorAll(".btn-nota").forEach(b => b.disabled = false);
+
+    const fb = document.getElementById("lblFeedback");
+    fb.textContent = "¿Qué nota es?";
+    fb.style.color = "#333";
+
+    actualizarStats();
+
+    if (document.getElementById("chkTiempo").checked) {
+      tiempoRestante = parseInt(document.getElementById("numSegundos").value, 10);
+      document.getElementById("lblReloj").textContent = `Tiempo: ${tiempoRestante}s`;
+      timerInterval = setInterval(() => {
+        tiempoRestante--;
+        document.getElementById("lblReloj").textContent = `Tiempo: ${tiempoRestante}s`;
+        if (tiempoRestante <= 0) pararJuego(true);
+      }, 1000);
+    } else {
+      document.getElementById("lblReloj").textContent = "Tiempo: ∞";
+    }
+
+    siguienteNota();
+  }
+
+  function siguienteNota() {
+    if (!jugando) return;
+    let nueva = notasDisponibles[Math.floor(Math.random() * notasDisponibles.length)];
+    while (nueva === notaActual) {
+      nueva = notasDisponibles[Math.floor(Math.random() * notasDisponibles.length)];
+    }
+    notaActual = nueva;
+    historial.push({ ...nueva, color: "black", respondida: false });
+    redibujar();
+  }
+
+  function verificarRespuesta(respuesta) {
+    if (!jugando || historial.length === 0) return;
+
+    intentos++;
+    const actual = historial[historial.length - 1];
+    actual.respondida = true;
+    const posKey = document.getElementById("selPosicion").value;
+    const posTexto = actual[posKey];
+    const fb = document.getElementById("lblFeedback");
+
+    if (respuesta === actual.nombre) {
+      aciertos++;
+      actual.color = "#2E7D32";
+      fb.textContent = `¡Correcto! Era ${actual.nombre} (${posTexto})`;
+      fb.style.color = "#2E7D32";
+      reproducirSonido(actual.frec, 0.85);
+      if (navigator.vibrate) navigator.vibrate(30);
+    } else {
+      actual.color = "#C62828";
+      fb.textContent = `Incorrecto (pulsaste ${respuesta}). Era ${actual.nombre} (${posTexto})`;
+      fb.style.color = "#C62828";
+      reproducirSonido(frecuenciasBotones[respuesta], 0.25);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    }
+
+    redibujar();
+    actualizarStats();
+    siguienteNota();
+  }
+
+  function actualizarStats() {
+    const lbl = document.getElementById("lblStats");
+    if (intentos > 0) {
+      const pct = (aciertos / intentos) * 100;
+      const nota10 = Math.max(1.0, pct / 10);
+      lbl.textContent = `Aciertos: ${aciertos} | Intentos: ${intentos} | Nota: ${nota10.toFixed(1)} / 10 (${pct.toFixed(0)}%)`;
+    } else {
+      lbl.textContent = "Aciertos: 0 | Intentos: 0 | Nota: -";
+    }
+  }
+
+  function pararJuego(porTiempo) {
+    jugando = false;
+    clearInterval(timerInterval);
+
+    document.getElementById("btnIniciar").disabled = false;
+    document.getElementById("btnParar").disabled = true;
+    toggleTiempo();
+    document.querySelectorAll(".btn-nota").forEach(b => b.disabled = true);
+
+    if (historial.length > 0 && !historial[historial.length - 1].respondida) {
+      historial.pop();
+      redibujar();
+    }
+
+    const estado = porTiempo ? "¡Tiempo agotado!" : "Sesión finalizada";
+    const fb = document.getElementById("lblFeedback");
+    fb.textContent = estado;
+    fb.style.color = "#333";
+
+    if (intentos > 0) {
+      const pct = (aciertos / intentos) * 100;
+      const nota10 = Math.max(1.0, pct / 10);
+      const rec = cargarRecord();
+      let esRecord = false;
+
+      if (nota10 > rec.nota || (nota10 === rec.nota && aciertos > rec.aciertos)) {
+        esRecord = true;
+        localStorage.setItem("record_notas_web", JSON.stringify({
+          nota: nota10, porcentaje: pct, aciertos: aciertos, intentos: intentos
+        }));
+        actualizarBannerRecord();
+      }
+
+      const extra = esRecord ? "\n🎉 ¡NUEVO RÉCORD HISTÓRICO! 🎉\n" : "";
+      alert(
+        `${estado}\n${extra}\n` +
+        `• Total de intentos: ${intentos}\n` +
+        `• Aciertos: ${aciertos}\n` +
+        `• Porcentaje: ${pct.toFixed(1)}%\n` +
+        `• Calificación final: ${nota10.toFixed(1)} sobre 10`
+      );
+    }
+  }
+
+  actualizarBannerRecord();
+  redibujar();
+</script>
+</body>
+</html>
