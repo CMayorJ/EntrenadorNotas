@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guitarra Interactiva: Afinador, Notas, Pentatónica y Acordes</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <h1>🎸 Estudio Interactivo de Guitarra</h1>
+  <p class="subtitle">Afina tu guitarra, domina las escalas pentatónicas, explora el mástil y practica acordes.</p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="dot-sample finger-0"></span> 0: Al aire</div>
+    <div class="legend-item"><span class="dot-sample finger-1"></span> 1: Índice</div>
+    <div class="legend-item"><span class="dot-sample finger-2"></span> 2: Medio</div>
+    <div class="legend-item"><span class="dot-sample finger-3"></span> 3: Anular</div>
+    <div class="legend-item"><span class="dot-sample finger-4"></span> 4: Meñique</div>
+    <div class="legend-item"><span class="dot-sample root-sample"></span> Tónica (Raíz)</div>
+  </div>
+
+
+  <!-- SECCIÓN 2: DIAPASÓN Y GUÍA PENTATÓNICA -->
+  <section class="card">
+    <h2>2. Diapasón de Notas y Escala Pentatónica</h2>
+
+    <div class="mode-tabs">
+      <button class="tab-btn active" data-mode="notes">Filtrar por Nota</button>
+      <button class="tab-btn" data-mode="pentatonic">Guía Pentatónica</button>
+    </div>
+
+    <div class="controls" id="noteButtons">
+      <button class="btn active" data-note="ALL">Todas las notas</button>
+    </div>
+
+    <div class="pentatonic-controls hidden" id="pentatonicControls">
+      <label>Tónica:
+        <select id="pentaRoot"></select>
+      </label>
+      <label>Tipo:
+        <select id="pentaType">
+          <option value="minor">Pentatónica Menor (Blues / Rock)</option>
+          <option value="major">Pentatónica Mayor (Pop / Country)</option>
+        </select>
+      </label>
+      <button class="action-btn small" id="playScaleBtn">🔊 Escuchar Escala</button>
+    </div>
+
+    <div class="fretboard-wrapper">
+      <table class="fretboard" id="fretboard"></table>
+    </div>
+
+    <div class="info-box" id="infoBox">
+      Haz clic sobre cualquier nota del mástil para escucharla y ver su posición.
+    </div>
+  </section>
+
+  <!-- SECCIÓN 3: ACORDES BÁSICOS -->
+  <section class="card">
+    <h2>3. Acordes Básicos y Posición de Dedos</h2>
+    <div class="controls" id="chordButtons"></div>
+
+    <div class="chord-display">
+      <div class="chord-diagram" id="chordDiagram"></div>
+      <div class="chord-details" id="chordDetails"></div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN EXTRA: METRÓNOMO Y TEMPORIZADOR DE RUTINA -->
+  <section class="card">
+    <h2>⏱️ Herramientas de Ritmo y Práctica</h2>
+    <div class="practice-grid">
+
+      <!-- Panel A: Metrónomo -->
+      <div class="practice-box">
+        <h3>Metrónomo</h3>
+        <div class="bpm-display"><span id="bpmValue">100</span> <small>BPM</small></div>
+        <input type="range" id="bpmSlider" min="40" max="220" value="100" class="slider">
+
+        <div class="metro-controls">
+          <label>Compás:
+            <select id="timeSignature">
+              <option value="4" selected>4/4</option>
+              <option value="3">3/4</option>
+              <option value="6">6/8</option>
+              <option value="2">2/4</option>
+            </select>
+          </label>
+          <button class="action-btn small" id="tapTempoBtn">👆 Tap Tempo</button>
+        </div>
+
+        <div class="beat-lights" id="beatLights"></div>
+        <button class="action-btn" id="metroToggle">▶️ Iniciar Metrónomo</button>
+      </div>
+
+      <!-- Panel B: Temporizador de Rutina -->
+      <div class="practice-box">
+        <h3>Temporizador de Rutina</h3>
+        <div class="timer-display" id="timerDisplay">05:00</div>
+        <div class="timer-label" id="timerTaskLabel">Ejercicio libre</div>
+
+        <div class="preset-btns">
+          <button class="btn small-btn" data-mins="5" data-task="Calentamiento y digitación">5m Calentamiento</button>
+          <button class="btn small-btn" data-mins="10" data-task="Escalas pentatónicas">10m Escalas</button>
+          <button class="btn small-btn" data-mins="15" data-task="Cambio de acordes y ritmo">15m Acordes</button>
+        </div>
+
+        <div class="timer-actions">
+          <button class="action-btn small" id="timerStartBtn">▶️ Iniciar</button>
+          <button class="btn small-btn" id="timerResetBtn">🔄 Reiniciar</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECCIÓN 1: AFINADOR CON MICRÓFONO -->
+  <section class="card tuner-card">
+    <h2>1. Afinador Cromático (Micrófono)</h2>
+    <div class="tuner-box">
+      <button class="action-btn" id="tunerToggle">🎙️ Activar Micrófono</button>
+      <div class="tuner-readout">
+        <div class="tuner-note" id="tunerNote">--</div>
+        <div class="tuner-freq" id="tunerFreq">0.0 Hz</div>
+      </div>
+      <div class="tuner-meter">
+        <span class="meter-label">♭ Grave</span>
+        <div class="meter-track">
+          <div class="meter-center"></div>
+          <div class="meter-needle" id="tunerNeedle"></div>
+        </div>
+        <span class="meter-label">♯ Agudo</span>
+      </div>
+      <div class="tuner-status" id="tunerStatus">Pulsa el botón para afinar (Estándar: E2 A2 D3 G3 B3 E4)</div>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

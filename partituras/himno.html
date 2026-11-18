@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Himno de España - Partitura Interactiva</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Himno de España (Marcha Real) — Partitura Interactiva</h1>
+        <p class="subtitle">Tonalidad de Do Mayor • Primera posición en guitarra (comienza en Sol, 3.ª cuerda al aire)</p>
+    </header>
+
+    <div class="controls">
+        <button id="btnStart" type="button">▶ Start</button>
+        <button id="btnStop" type="button" class="danger">⏹ Detener</button>
+        <button id="btnPrev" type="button" class="secondary">⏮ Paso Anterior</button>
+        <button id="btnNext" type="button" class="secondary">⏭ Siguiente Paso</button>
+        <div class="tempo-control">
+            <label for="tempo">Velocidad:</label>
+            <input type="range" id="tempo" min="60" max="160" value="105">
+            <span id="tempoVal">105 BPM</span>
+        </div>
+    </div>
+
+    <div class="toggles">
+        <label class="checkbox-label">
+            <input type="checkbox" id="chkNotes" checked>
+            Mostrar nombre de la nota (arriba)
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" id="chkFingers" checked>
+            Mostrar posición y dedos en guitarra (abajo)
+        </label>
+    </div>
+
+    <div class="info-panel" id="statusPanel">
+        Pulsa <strong>Start</strong> para reproducir o usa <strong>Siguiente Paso</strong> para avanzar nota a nota.
+    </div>
+    <div class="sheet-paper" id="sheetPaper"></div>
+</div>
+
+<script src="js/himno.js"></script>
+<script src="js/player.js"></script>
+</body>
+</html>

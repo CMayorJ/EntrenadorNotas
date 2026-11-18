@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piratas del Caribe - Partitura Interactiva</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <nav class="top-nav">
+        <a href="index.html" class="back-link">← Volver al inicio</a>
+    </nav>
+
+    <header>
+        <h1>Piratas del Caribe (He's a Pirate)</h1>
+        <p class="subtitle">Tonalidad de Re Menor • Compás 3/4 (comienza en La, 3.ª cuerda, traste 2)</p>
+    </header>
+
+    <div class="controls">
+        <button id="btnStart" type="button">▶ Start</button>
+        <button id="btnStop" type="button" class="danger">⏹ Detener</button>
+        <button id="btnPrev" type="button" class="secondary">⏮ Paso Anterior</button>
+        <button id="btnNext" type="button" class="secondary">⏭ Siguiente Paso</button>
+        <div class="tempo-control">
+            <label for="tempo">Velocidad:</label>
+            <input type="range" id="tempo" min="60" max="180" value="135">
+            <span id="tempoVal">135 BPM</span>
+        </div>
+    </div>
+
+    <div class="toggles">
+        <label class="checkbox-label">
+            <input type="checkbox" id="chkNotes" checked>
+            Mostrar nombre de la nota (arriba)
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" id="chkFingers" checked>
+            Mostrar posición y dedos en guitarra (abajo)
+        </label>
+    </div>
+
+    <div class="info-panel" id="statusPanel">
+        Pulsa <strong>Start</strong> para reproducir o usa <strong>Siguiente Paso</strong> para avanzar nota a nota.
+    </div>
+
+    <div class="sheet-paper" id="sheetPaper"></div>
+</div>
+
+<script src="js/piratas.js"></script>
+<script src="js/player.js"></script>
+</body>
+</html>
