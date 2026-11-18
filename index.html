@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GuitarLab | Estudio Interactivo de Guitarra</title>
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0e0e11;
+      --bg-card: #18181d;
+      --bg-card-hover: #212128;
+      --text-main: #f4f4f6;
+      --text-muted: #9e9ea9;
+      --accent-amber: #f59e0b;
+      --accent-amber-glow: rgba(245, 158, 11, 0.15);
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.15);
+      --accent-indigo: #6366f1;
+      --accent-indigo-glow: rgba(99, 102, 241, 0.15);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.07) 0%, transparent 40%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    /* Cabecera */
+    header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 4rem auto;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #ffffff 30%, #b4b4c0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* Grid de Tarjetas */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 1.75rem;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2rem;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      background-color: var(--bg-card-hover);
+    }
+
+    /* Variantes de color por tarjeta */
+    .card--studio:hover {
+      border-color: rgba(245, 158, 11, 0.45);
+      box-shadow: 0 18px 40px -15px var(--accent-amber-glow);
+    }
+
+    .card--game:hover {
+      border-color: rgba(16, 185, 129, 0.45);
+      box-shadow: 0 18px 40px -15px var(--accent-emerald-glow);
+    }
+
+    .card--scores:hover {
+      border-color: rgba(99, 102, 241, 0.45);
+      box-shadow: 0 18px 40px -15px var(--accent-indigo-glow);
+    }
+
+    .icon-box {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .card--studio .icon-box {
+      background: var(--accent-amber-glow);
+      color: var(--accent-amber);
+    }
+
+    .card--game .icon-box {
+      background: var(--accent-emerald-glow);
+      color: var(--accent-emerald);
+    }
+
+    .card--scores .icon-box {
+      background: var(--accent-indigo-glow);
+      color: var(--accent-indigo);
+    }
+
+    .card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin-bottom: 0.65rem;
+      color: var(--text-main);
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.96rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .tag {
+      font-size: 0.78rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #c7c7d1;
+      font-weight: 500;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1.15rem;
+      border-top: 1px solid var(--border-subtle);
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    .card--studio .card-footer { color: var(--accent-amber); }
+    .card--game .card-footer { color: var(--accent-emerald); }
+    .card--scores .card-footer { color: var(--accent-indigo); }
+
+    .arrow {
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover .arrow {
+      transform: translateX(5px);
+    }
+
+    /* Pie de página */
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 2rem 1.25rem;
+      }
+      header {
+        margin-bottom: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <header>
+      <div class="badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V5l12-2v13"></path>
+          <circle cx="6" cy="18" r="3"></circle>
+          <circle cx="18" cy="16" r="3"></circle>
+        </svg>
+        Entrenamiento & Teoría Musical
+      </div>
+      <h1>Tu Estudio de Guitarra</h1>
+      <p>Herramientas interactivas, entrenamiento auditivo y visual del mástil, y repertorio de ejercicios para mejorar tu técnica diaria.</p>
+    </header>
+
+    <section class="grid">
+      <!-- Aplicación 1: Estudio Interactivo -->
+      <a href="./estudio/index.html" class="card card--studio">
+        <div>
+          <div class="icon-box">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line>
+              <line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line>
+              <line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line>
+              <line x1="9" y1="8" x2="15" y2="8"></line>
+              <line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+          </div>
+          <h2>Estudio Interactivo</h2>
+          <p>Utilidades esenciales para tus sesiones de práctica: visualizador de escalas y acordes en el diapasón, metrónomo y afinador.</p>
+          <div class="tags">
+            <span class="tag">Diapasón</span>
+            <span class="tag">Escalas y Acordes</span>
+            <span class="tag">Utilidades</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>Abrir herramientas</span>
+          <span class="arrow">→</span>
+        </div>
+      </a>
+
+      <!-- Aplicación 2: Juego de Adivinar Notas -->
+      <a href="./entrenador/index.html" class="card card--game">
+        <div>
+          <div class="icon-box">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+              <path d="M6 12h4"></path>
+              <path d="M8 10v4"></path>
+              <line x1="15" y1="13" x2="15.01" y2="13"></line>
+              <line x1="18" y1="11" x2="18.01" y2="11"></line>
+            </svg>
+          </div>
+          <h2>Adivina las Notas</h2>
+          <p>Pon a prueba tus reflejos y memoriza cada traste y cuerda de la guitarra mediante retos interactivos con puntuación.</p>
+          <div class="tags">
+            <span class="tag">Mástil</span>
+            <span class="tag">Lectura</span>
+            <span class="tag">Entrenamiento</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>Empezar a jugar</span>
+          <span class="arrow">→</span>
+        </div>
+      </a>
+
+      <!-- Aplicación 3: Partituras y Ejercicios -->
+      <a href="./partituras/index.html" class="card card--scores">
+        <div>
+          <div class="icon-box">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              <path d="M12 6v7"></path>
+              <circle cx="10.5" cy="13" r="1.5"></circle>
+            </svg>
+          </div>
+          <h2>Partituras y Ejercicios</h2>
+          <p>Colección progresiva de partituras, tablaturas y estudios técnicos organizados para desarrollar digitación y lectura musical.</p>
+          <div class="tags">
+            <span class="tag">Tablaturas</span>
+            <span class="tag">Técnica</span>
+            <span class="tag">Repertorio</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>Ver ejercicios</span>
+          <span class="arrow">→</span>
+        </div>
+      </a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Suite de Aprendizaje Musical · Publicado con GitHub y Cloudflare</p>
+  </footer>
+
+</body>
+</html>

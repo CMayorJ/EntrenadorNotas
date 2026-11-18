@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Cucaracha - Tablatura Interactiva</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --highlight: #f59e0b;
+            --string-line: #475569;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 960px;
+            width: 100%;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        h1 { margin: 0 0 0.5rem 0; color: var(--accent); font-size: 1.8rem; }
+        p.subtitle { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+        /* Controles */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        button {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 0.6rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            font-size: 0.95rem;
+        }
+        button:hover { opacity: 0.9; }
+        button:active { transform: scale(0.97); }
+        button.secondary { background: #334155; color: var(--text); }
+        button.danger { background: #ef4444; color: white; }
+
+        .tempo-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Tablatura Visual */
+        .tab-phrase {
+            margin-bottom: 2.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+        .phrase-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin-bottom: 0.75rem;
+        }
+        .tab-grid {
+            display: flex;
+            align-items: stretch;
+            min-width: 600px;
+        }
+        .string-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px 12px 26px 0;
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--muted);
+            user-select: none;
+        }
+        .note-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            border-radius: 6px;
+            padding: 4px 0;
+            transition: background 0.15s;
+        }
+        .note-col:hover { background: rgba(255,255,255,0.05); }
+        .note-col.active { background: rgba(245, 158, 11, 0.2); }
+
+        .note-name {
+            height: 24px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+        .note-col.active .note-name { color: var(--highlight); transform: scale(1.15); }
+
+        .strings-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 6px 0;
+            position: relative;
+        }
+        .string-row {
+            height: 2px;
+            background: var(--string-line);
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .fret-badge {
+            background: var(--card);
+            color: var(--text);
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.95rem;
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--accent);
+            z-index: 2;
+        }
+        .note-col.active .fret-badge {
+            background: var(--highlight);
+            color: #0f172a;
+            border-color: var(--highlight);
+            box-shadow: 0 0 12px var(--highlight);
+        }
+        .lyric-syllable {
+            height: 22px;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .note-col.active .lyric-syllable { color: var(--text); font-weight: bold; }
+
+        .info-panel {
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        .info-panel strong { color: var(--highlight); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>La Cucaracha — Tablatura Interactiva</h1>
+        <p class="subtitle">Tonalidad de Fa Mayor • Posición inicial: Do (5.ª cuerda, traste 3)</p>
+    </header>
+
+    <div class="controls">
+        <button id="btnStart" onclick="startPlayback()">▶ Start</button>
+        <button id="btnStop" class="danger" onclick="stopPlayback()">⏹ Detener</button>
+        <button class="secondary" onclick="stepPrev()">⏮ Paso Anterior</button>
+        <button class="secondary" onclick="stepNext()">⏭ Siguiente Paso</button>
+        <div class="tempo-control">
+            <label for="tempo">Velocidad:</label>
+            <input type="range" id="tempo" min="60" max="180" value="120" oninput="updateTempoLabel(this.value)">
+            <span id="tempoVal">120 BPM</span>
+        </div>
+    </div>
+
+    <div class="info-panel" id="statusPanel">
+        Pulsa <strong>Start</strong> para reproducir o usa <strong>Siguiente Paso</strong> para avanzar nota a nota.
+    </div>
+
+    <div id="tabContainer"></div>
+</div>
+
+<script>
+    // Datos de la canción: cuerda (1=e aguda, 6=E grave), traste, frecuencia Hz, duración (en corcheas), letra, frase
+    const songData = [
+        // Frase 1
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "La",  phrase: 0 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "cu-", phrase: 0 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "ca-", phrase: 0 },
+        { note: "Fa",  string: 4, fret: 3, freq: 174.61, dur: 2, lyric: "ra-", phrase: 0 },
+        { note: "La",  string: 3, fret: 2, freq: 220.00, dur: 3, lyric: "cha,",phrase: 0 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "la",  phrase: 0 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "cu-", phrase: 0 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "ca-", phrase: 0 },
+        { note: "Fa",  string: 4, fret: 3, freq: 174.61, dur: 2, lyric: "ra-", phrase: 0 },
+        { note: "La",  string: 3, fret: 2, freq: 220.00, dur: 3, lyric: "cha", phrase: 0 },
+
+        // Frase 2
+        { note: "Fa",  string: 4, fret: 3, freq: 174.61, dur: 1, lyric: "ya",  phrase: 1 },
+        { note: "Fa",  string: 4, fret: 3, freq: 174.61, dur: 1, lyric: "no",  phrase: 1 },
+        { note: "Mi",  string: 4, fret: 2, freq: 164.81, dur: 1, lyric: "pue-",phrase: 1 },
+        { note: "Mi",  string: 4, fret: 2, freq: 164.81, dur: 1, lyric: "de",  phrase: 1 },
+        { note: "Re",  string: 4, fret: 0, freq: 146.83, dur: 1, lyric: "ca-", phrase: 1 },
+        { note: "Re",  string: 4, fret: 0, freq: 146.83, dur: 1, lyric: "mi-", phrase: 1 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 3, lyric: "nar,",phrase: 1 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "por-",phrase: 1 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "que", phrase: 1 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "no",  phrase: 1 },
+        { note: "Mi",  string: 4, fret: 2, freq: 164.81, dur: 2, lyric: "tie-",phrase: 1 },
+        { note: "Sol", string: 4, fret: 5, freq: 196.00, dur: 3, lyric: "ne,",phrase: 1 },
+
+        // Frase 3
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "por-",phrase: 2 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "que", phrase: 2 },
+        { note: "Do",  string: 5, fret: 3, freq: 130.81, dur: 1, lyric: "le",  phrase: 2 },
+        { note: "Mi",  string: 4, fret: 2, freq: 164.81, dur: 2, lyric: "fal-",phrase: 2 },
+        { note: "Sol", string: 4, fret: 5, freq: 196.00, dur: 3, lyric: "ta,",phrase: 2 },
+        { note: "Do",  string: 2, fret: 1, freq: 261.63, dur: 1, lyric: "la",  phrase: 2 },
+        { note: "Re",  string: 2, fret: 3, freq: 293.66, dur: 1, lyric: "pa-", phrase: 2 },
+        { note: "Do",  string: 2, fret: 1, freq: 261.63, dur: 1, lyric: "ti-", phrase: 2 },
+        { note: "Sib", string: 3, fret: 3, freq: 233.08, dur: 1, lyric: "ta",  phrase: 2 },
+        { note: "La",  string: 3, fret: 2, freq: 220.00, dur: 1, lyric: "prin-",phrase: 2 },
+        { note: "Sol", string: 3, fret: 0, freq: 196.00, dur: 1, lyric: "ci-", phrase: 2 },
+        { note: "Fa",  string: 4, fret: 3, freq: 174.61, dur: 3, lyric: "pal.",phrase: 2 }
+    ];
+
+    const phraseTitles = [
+        "Frase 1 — Estribillo",
+        "Frase 2 — Desarrollo",
+        "Frase 3 — Cierre"
+    ];
+
+    let currentIndex = -1;
+    let isPlaying = false;
+    let timerId = null;
+    let audioCtx = null;
+
+    // Síntesis de sonido tipo cuerda pulsada
+    function playGuitarTone(freq, durationSec) {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const filter = audioCtx.createBiquadFilter();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1800, now);
+        filter.frequency.exponentialRampToValueAtTime(350, now + durationSec);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.4, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + durationSec + 0.2);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + durationSec + 0.25);
+    }
+
+    // Construir el DOM de la tablatura
+    function renderTab() {
+        const container = document.getElementById('tabContainer');
+        container.innerHTML = '';
+        const stringNames = ['e', 'B', 'G', 'D', 'A', 'E'];
+
+        phraseTitles.forEach((title, pIdx) => {
+            const phraseDiv = document.createElement('div');
+            phraseDiv.className = 'tab-phrase';
+            phraseDiv.innerHTML = `<div class="phrase-title">${title}</div>`;
+
+            const grid = document.createElement('div');
+            grid.className = 'tab-grid';
+
+            const labels = document.createElement('div');
+            labels.className = 'string-labels';
+            stringNames.forEach(s => {
+                labels.innerHTML += `<div>${s}|</div>`;
+            });
+            grid.appendChild(labels);
+
+            songData.forEach((item, index) => {
+                if (item.phrase !== pIdx) return;
+
+                const col = document.createElement('div');
+                col.className = 'note-col';
+                col.id = `note-${index}`;
+                col.onclick = () => selectStep(index);
+
+                let stringsHtml = '<div class="strings-container">';
+                for (let s = 1; s <= 6; s++) {
+                    if (s === item.string) {
+                        stringsHtml += `<div class="string-row"><span class="fret-badge">${item.fret}</span></div>`;
+                    } else {
+                        stringsHtml += `<div class="string-row"></div>`;
+                    }
+                }
+                stringsHtml += '</div>';
+
+                col.innerHTML = `
+                    <div class="note-name">${item.note}</div>
+                    ${stringsHtml}
+                    <div class="lyric-syllable">${item.lyric}</div>
+                `;
+                grid.appendChild(col);
+            });
+
+            phraseDiv.appendChild(grid);
+            container.appendChild(phraseDiv);
+        });
+    }
+
+    function highlightNote(index) {
+        document.querySelectorAll('.note-col').forEach(el => el.classList.remove('active'));
+        if (index >= 0 && index < songData.length) {
+            const el = document.getElementById(`note-${index}`);
+            el.classList.add('active');
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+            const item = songData[index];
+            document.getElementById('statusPanel').innerHTML =
+                `Paso <strong>${index + 1} / ${songData.length}</strong> — Nota: <strong>${item.note}</strong> | Cuerda: <strong>${item.string}.ª</strong> | Traste: <strong>${item.fret}</strong>`;
+        }
+    }
+
+    function triggerNote(index) {
+        currentIndex = index;
+        highlightNote(index);
+        const item = songData[index];
+        const bpm = parseInt(document.getElementById('tempo').value, 10);
+        const eighthSec = (60 / bpm) / 2;
+        playGuitarTone(item.freq, item.dur * eighthSec);
+    }
+
+    function startPlayback() {
+        if (isPlaying) return;
+        isPlaying = true;
+        if (currentIndex < 0 || currentIndex >= songData.length - 1) {
+            currentIndex = 0;
+        }
+        playSequence();
+    }
+
+    function playSequence() {
+        if (!isPlaying) return;
+        if (currentIndex >= songData.length) {
+            stopPlayback();
+            currentIndex = -1;
+            return;
+        }
+
+        triggerNote(currentIndex);
+        const item = songData[currentIndex];
+        const bpm = parseInt(document.getElementById('tempo').value, 10);
+        const stepMs = ((60 / bpm) / 2) * item.dur * 1000;
+
+        currentIndex++;
+        timerId = setTimeout(playSequence, stepMs);
+    }
+
+    function stopPlayback() {
+        isPlaying = false;
+        clearTimeout(timerId);
+    }
+
+    // Modo paso a paso
+    function stepNext() {
+        stopPlayback();
+        const next = currentIndex + 1 < songData.length ? currentIndex + 1 : 0;
+        triggerNote(next);
+    }
+
+    function stepPrev() {
+        stopPlayback();
+        const prev = currentIndex - 1 >= 0 ? currentIndex - 1 : songData.length - 1;
+        triggerNote(prev);
+    }
+
+    function selectStep(index) {
+        stopPlayback();
+        triggerNote(index);
+    }
+
+    function updateTempoLabel(val) {
+        document.getElementById('tempoVal').textContent = `${val} BPM`;
+    }
+
+    renderTab();
+</script>
+</body>
+</html>
